@@ -5,50 +5,43 @@ package com.vodden.aoc25.day01
 
 class App {
     fun process(lines: List<String>): Int {
-        var accumulator = 50
-        var numOfZeros = 0
-        for (line in lines.iterator()) {
+        val (_, numOfZeros) = lines.fold(Pair(50, 0)) { (accumulator, numOfZeros), line ->
             val value = line.substring(1).toInt()
-
-            when(line[0]) {
-                'L' -> accumulator -= value
-                'R' -> accumulator += value
+            val nextAcc = when(line[0]) {
+                'L' -> accumulator - value
+                'R' -> accumulator + value
+                else -> accumulator
             }
-
-            if (accumulator.mod(100) == 0) {
-                numOfZeros++
-            }
+            Pair(nextAcc, if (accumulator.mod(100) == 0) numOfZeros + 1 else numOfZeros)
         }
-
         return numOfZeros
     }
 
     fun processP2(lines: List<String>): Int {
-        var accumulator = 50
-        var numOfZeroCrossings = 0
-        for (line in lines.iterator()) {
+        val (_, numOfZeroCrossings) = lines.fold(Pair(50, 0)) { (accumulator, numOfZeroCrossings), line ->
             val value = line.substring(1).toInt()
-
-            when(line[0]) {
-                'R' ->  {
-                    numOfZeroCrossings += (accumulator + value) / 100
-                    accumulator = (accumulator + value).mod(100)
-                }
+            val (newPos, addedCrossings) = when(line[0]) {
+                'R' -> Pair( (accumulator + value).mod(100), (accumulator + value) / 100 )
                 'L' -> {
                     val flippedAccumulator = (100-accumulator).mod(100)
-                    numOfZeroCrossings += (flippedAccumulator + value) / 100
-                    accumulator = (accumulator - value).mod(100)
-
+                    Pair((accumulator - value).mod(100), (flippedAccumulator + value) / 100)
                 }
+                else -> Pair(accumulator, numOfZeroCrossings)
             }
+            Pair(newPos, numOfZeroCrossings + addedCrossings)
         }
-
         return numOfZeroCrossings
     }
 }
 
 fun main() {
-    val lines = object {}.javaClass.getResourceAsStream("/input.txt")?.bufferedReader()?.readLines()
-    println(App().process(lines!!))
-    println(App().processP2(lines!!))
+    val lines = object {}.javaClass.getResource("/input.txt")
+        ?.readText()
+        ?.lines()
+        ?.filter { it.isNotBlank() }
+    
+    if(lines != null) {
+        println(App().process(lines))
+        println(App().processP2(lines))
+    }
 }
