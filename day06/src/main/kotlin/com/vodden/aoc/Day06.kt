@@ -28,7 +28,7 @@ class Day06 {
     fun part1(): Long = 
         zip(
             *input.lines()
-            .map { it.split(" ").filter( { it.isNotEmpty() }) }
+            .map { it.split(" ").filter { it.isNotEmpty() } }
             .toTypedArray()
         )
         .map { l -> when(l.last()) {
@@ -44,18 +44,16 @@ class Day06 {
             .map { it.toList() }
             .toTypedArray())
             .map { it.joinToString("") }
-            .fold(mutableListOf(mutableListOf<String>())) { acc, col ->
+            .fold(listOf(listOf<String>())) { acc, col ->
                 if (col.isBlank()) {
-                    if (acc.last().isNotEmpty()) {
-                        acc.add(mutableListOf())
-                    }
+                    if (acc.last().isNotEmpty()) acc + listOf(emptyList())
+                    else acc
                 } else {
-                    acc.last().add(col.trim())
+                    acc.dropLast(1) + listOf(acc.last() + col)
                 }
-                acc
             }
             .filter { it.isNotEmpty() }
-            .map { it.map { s -> s.toLong() } }
+            .map { it.map { s -> s.trim().toLong() } }
 
         val operators = lines.last()
             .toList().filter({ it != ' ' })
