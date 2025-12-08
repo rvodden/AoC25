@@ -3,8 +3,6 @@
  */
 package com.vodden.aoc
 
-import kotlin.requireNotNull
-
 public fun <T> zip(vararg lists: List<T>): List<List<T>> {
     return zip(*lists, transform = { it })
 }
@@ -24,12 +22,11 @@ public inline fun <T, V> zip(vararg lists: List<T>, transform: (List<T>) -> V): 
 }
 
 class Day06 {
-    fun part1() : Long {
-        val input = object {}.javaClass.getResource("/input.txt")
-            ?.readText()
-        requireNotNull(input) {"Failed to read input file"}
-        
-        return zip(
+    val input = requireNotNull(object {}.javaClass.getResource("/input.txt")
+        ?.readText(), {"Failed to read input file"})
+
+    fun part1(): Long = 
+        zip(
             *input.lines()
             .map { it.split(" ").filter( { it.isNotEmpty() }) }
             .toTypedArray()
@@ -39,9 +36,41 @@ class Day06 {
             "*" -> l.take(l.size - 1).fold(1L) { acc, next -> (acc * next.toLong()) }
             else -> 0L
         } }.sum()
+
+    fun part2(): Long {
+        val lines = input.lines()
+        val numbers = zip(*lines
+            .dropLast(1)
+            .map { it.toList() }
+            .toTypedArray())
+            .map { it.joinToString("") }
+            .fold(mutableListOf(mutableListOf<String>())) { acc, col ->
+                if (col.isBlank()) {
+                    if (acc.last().isNotEmpty()) {
+                        acc.add(mutableListOf())
+                    }
+                } else {
+                    acc.last().add(col.trim())
+                }
+                acc
+            }
+            .filter { it.isNotEmpty() }
+            .map { it.map { s -> s.toLong() } }
+
+        val operators = lines.last()
+            .toList().filter({ it != ' ' })
+
+        return operators.zip(numbers).sumOf { (opp, list) ->
+            when(opp) {
+                '+' -> list.reduce { acc, itm -> acc + itm }
+                '*' -> list.reduce { acc, itm -> acc * itm }
+                else -> 0L
+            }
+        }
     }
 }
 
 fun main() {
-    print(Day06().part1())
+    println(Day06().part1())
+    println(Day06().part2())
 }
