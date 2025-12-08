@@ -3,13 +3,48 @@
  */
 package org.example
 
+import java.math.BigInteger
+
+operator fun ClosedRange<BigInteger>.iterator(): Iterator<BigInteger> =
+    object : Iterator<BigInteger> {
+        var current = start
+        override fun hasNext() = current <= endInclusive
+        override fun next() = current.also { current = current.add(BigInteger.ONE) }
+    }
+
+fun <R> ClosedRange<BigInteger>.map(transform: (BigInteger) -> R): List<R> {
+    val result = ArrayList<R>()
+    // This for-loop works because you defined the iterator() above
+    for (item in this) {
+        result.add(transform(item))
+    }
+    return result
+}
+
+fun ClosedRange<BigInteger>.filter(predicate: (BigInteger) -> Boolean): List<BigInteger> {
+    val result = ArrayList<BigInteger>()
+    for (item in this) { // Works because you defined iterator()
+        if (predicate(item)) {
+            result.add(item)
+        }
+    }
+    return result
+}
+
 class App {
-    fun part1() : List<Pair<String,String>>? {
+    fun part1() : Int? {
+
+        val regex = """(.*)\1""".toRegex()
         val input = object {}.javaClass.getResource("/input.txt")
             ?.readText()
             ?.trim()
             ?.split(',')
-            ?.map { Pair(  it.substringBefore('-').trim(), it.substringAfter('-').trim()) }
+            ?.map { Pair(  it.substringBefore('-').trim().toBigInteger(), it.substringAfter('-').trim().toBigInteger()) }
+            ?.map { 
+                (it.first..it.second)
+                    .filter { regex.matches(it.toString()) }
+                    .sum()
+            }?.sum()
         return input
     }
 }
