@@ -3,8 +3,6 @@
  */
 package com.vodden.aoc
 
-import kotlin.requireNotNull
-
 class Day03 {
     val input: String by lazy { 
         requireNotNull(object {}.javaClass.getResource("/input.txt")?.readText(),
@@ -14,21 +12,18 @@ class Day03 {
     val banks by lazy { 
         input.lines().map { line -> line.map(Char::digitToInt) }
     }
-    
-    fun part1() : Int {
-        return banks.map { 
-            bank -> bank
-                .withIndex()
-                .flatMap { (idx, bat) -> bank.drop(idx + 1).map { bat to it} }
-                .map { (10*it.first) + it.second }
-                .max()
-        }.sum()
+
+    fun maxNumber(bank: List<Int>, digits: Int): Long {
+        return (digits downTo 1).fold(0L to 0) { (value, start), remaining ->
+            val (max, maxPos) = (start..bank.size - remaining)
+                .map { bank[it] to it }
+                .maxBy { it.first }
+            (value * 10 + max) to (maxPos + 1)
+        }.first
     }
 
-    fun part2(): Int {
-        return 0
-    }
-
+    fun part1() = banks.sumOf { maxNumber(it, 2)  }
+    fun part2() = banks.sumOf { maxNumber(it, 12) }
 }
 
 fun main() {
