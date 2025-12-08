@@ -20,18 +20,21 @@ class Day08 {
         input.map {  it.split(",").map { it.toLong() } }
     }
 
+    private val sortedPairs by lazy {
+        junctionBoxes.withIndex().flatMap { (i, lhs) ->
+            junctionBoxes.drop(i + 1).map { rhs ->
+                Pair(lhs, rhs)
+            }
+        }.sortedBy { (a, b) ->
+            val dx = a[0] - b[0]
+            val dy = a[1] - b[1]
+            val dz = a[2] - b[2]
+            (dx * dx + dy * dy + dz * dz)
+        }
+    }
 
     fun part1(connections: Int = 1000) : Int {
-        val sortedPairs = junctionBoxes.flatMap { lhs -> junctionBoxes.map { rhs -> Pair(lhs, rhs) } }
-            .filter { (a, b) -> a != b }
-            .sortedBy { (a, b) -> 
-                val dx = a[0] - b[0]
-                val dy = a[1] - b[1]
-                val dz = a[2] - b[2]
-                - (dx * dx + dy * dy + dz * dz)
-            }
-
-        val circuits = hashMapOf<List<Long>, Set<List<Long>>>(*junctionBoxes.map { p -> p to setOf(p) }.toTypedArray())
+        val circuits = junctionBoxes.associateWith { setOf(it) }.toMutableMap()
         
         sortedPairs.take(connections).forEach { (a, b) ->
             val (circuit1, jBoxes1) = circuits.entries.first { (_, jBoxes) ->
@@ -41,17 +44,10 @@ class Day08 {
                 b in jBoxes
             }
             if (circuit1 != circuit2) {
-                circuits[a] = jBoxes1 + jBoxes2
-                circuits.remove(b)
+                circuits[circuit1] = jBoxes1 + jBoxes2
+                circuits.remove(circuit2)
             }
-            println(circuits)
         }
-
-        println(
-            circuits.values
-            .map { it.size }
-            .sortedDescending()
-        )
 
         val circuitSizes = circuits.values
             .map { it.size }
@@ -63,7 +59,23 @@ class Day08 {
     }
     
     fun part2() : Long {
-        return 0L
+        val circuits = junctionBoxes.associateWith { setOf(it) }.toMutableMap()
+
+        val result = sortedPairs.first { (a, b) ->
+            val (circuit1, jBoxes1) = circuits.entries.first { (_, jBoxes) ->
+                a in jBoxes
+            }
+            val (circuit2, jBoxes2) = circuits.entries.first { (_, jBoxes) ->
+                b in jBoxes
+            }
+            if (circuit1 != circuit2) {
+                circuits[circuit1] = jBoxes1 + jBoxes2
+                circuits.remove(circuit2)
+            }
+            circuits.size == 1
+        }
+
+        return  result.first[0] * result.second[0]
     }
 }
 
