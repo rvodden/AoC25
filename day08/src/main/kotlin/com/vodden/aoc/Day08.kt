@@ -3,79 +3,99 @@
  */
 package com.vodden.aoc
 
-import kotlin.math.sqrt
-import kotlin.requireNotNull
-
 class Day08 {
 
-    private val input by lazy { 
-        val input = this::class.java.getResource("/input.txt")
-            ?.readText()?.lines()
+    private data class Point3D(val x: Long, val y: Long, val z: Long)
 
-        requireNotNull(input) {"Failed to read input file"}
-        input
+    private val input: List<String> by lazy {
+        requireNotNull(this::class.java.getResource("/input.txt")
+            .readText().lines().filter{ it.isNotBlank() }, {
+            "Failed to read input file"
+        })
     }
 
     private val junctionBoxes by lazy {
-        input.map {  it.split(",").map { it.toLong() } }
+        input.map { line -> 
+            val (x, y, z) = line.split(",").map { it.toLong() }
+            Point3D(x, y, z)
+        }
+    }
+
+    private fun distanceSquared(a: Point3D, b: Point3D): Long {
+        val dx = a.x - b.x
+        val dy = a.y - b.y
+        val dz = a.z - b.z
+        return dx * dx + dy * dy + dz * dz
     }
 
     private val sortedPairs by lazy {
-        junctionBoxes.withIndex().flatMap { (i, lhs) ->
-            junctionBoxes.drop(i + 1).map { rhs ->
-                Pair(lhs, rhs)
+        junctionBoxes.indices.flatMap { i ->
+            (i + 1 until junctionBoxes.size).map { j ->
+                i to j
             }
-        }.sortedBy { (a, b) ->
-            val dx = a[0] - b[0]
-            val dy = a[1] - b[1]
-            val dz = a[2] - b[2]
-            (dx * dx + dy * dy + dz * dz)
-        }
+        }.sortedBy { (i, j) -> distanceSquared(junctionBoxes[i], junctionBoxes[j]) }
     }
 
-    fun part1(connections: Int = 1000) : Int {
-        val circuits = junctionBoxes.associateWith { setOf(it) }.toMutableMap()
-        
-        sortedPairs.take(connections).forEach { (a, b) ->
-            val (circuit1, jBoxes1) = circuits.entries.first { (_, jBoxes) ->
-                a in jBoxes
+    private class UnionFind(size: Int) {
+        private val parent = IntArray(size) { it }
+        private val componentSize = IntArray(size) { 1 }
+
+        fun find(index: Int): Int {
+            if (parent[index] != index) {
+                parent[index] = find(parent[index]) // path compression
             }
-            val (circuit2, jBoxes2) = circuits.entries.first { (_, jBoxes) ->
-                b in jBoxes
-            }
-            if (circuit1 != circuit2) {
-                circuits[circuit1] = jBoxes1 + jBoxes2
-                circuits.remove(circuit2)
-            }
+            return parent[index]
         }
 
-        val circuitSizes = circuits.values
-            .map { it.size }
+        fun union(a: Int, b: Int): Boolean {
+            val rootA = find(a)
+            val rootB = find(b)
+
+            if (rootA == rootB) return false
+
+            // Union by size: attach smaller tree to larger tree
+            if (componentSize[rootA] < componentSize[rootB]) {
+                parent[rootA] = rootB
+                componentSize[rootB] += componentSize[rootA]
+            } else {
+                parent[rootB] = rootA
+                componentSize[rootA] += componentSize[rootB]
+            }
+            return true
+        }
+
+        val componentSizes: List<Int>
+            get() = parent.indices
+                .filter { parent[it] == it }
+                .map { componentSize[it] }
+
+        val componentCount: Int
+            get() = parent.indices.count { parent[it] == it }
+    }
+
+    fun part1(connections: Int = 1000): Int {
+        val uf = UnionFind(junctionBoxes.size)
+
+        sortedPairs.take(connections).forEach { (i, j) ->
+            uf.union(i, j)
+        }
+
+        return uf.componentSizes
             .sortedDescending()
             .take(3)
-            .fold(1) { acc, v -> acc * v }
-
-        return circuitSizes
+            .fold(1, Int::times)
     }
-    
-    fun part2() : Long {
-        val circuits = junctionBoxes.associateWith { setOf(it) }.toMutableMap()
 
-        val result = sortedPairs.first { (a, b) ->
-            val (circuit1, jBoxes1) = circuits.entries.first { (_, jBoxes) ->
-                a in jBoxes
-            }
-            val (circuit2, jBoxes2) = circuits.entries.first { (_, jBoxes) ->
-                b in jBoxes
-            }
-            if (circuit1 != circuit2) {
-                circuits[circuit1] = jBoxes1 + jBoxes2
-                circuits.remove(circuit2)
-            }
-            circuits.size == 1
+    fun part2(): Long {
+        val uf = UnionFind(junctionBoxes.size)
+        var components = junctionBoxes.size
+
+        val result = sortedPairs.first { (i, j) ->
+            if(uf.union(i, j)) components--
+            components == 1
         }
 
-        return  result.first[0] * result.second[0]
+        return junctionBoxes[result.first].x * junctionBoxes[result.second].x
     }
 }
 
