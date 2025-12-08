@@ -58,5 +58,6 @@ gradle-app.setting
 *.hprof
 
 input.txt
+**/bin/
 
 # End of https://www.toptal.com/developers/gitignore/api/gradle,kotlin

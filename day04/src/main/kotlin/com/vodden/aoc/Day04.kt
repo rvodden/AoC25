@@ -4,48 +4,42 @@
 package com.vodden.aoc
 
 import kotlin.requireNotNull
-import kotlin.require
-
 
 class Day04 {
-    val input : String by lazy { 
-            val input = object {}.javaClass.getResource("/input.txt")?.readText()
-            requireNotNull(input) { "Could not open input.txt resource." }
-            input
-        }
-
-    val rollsOfPaper : List<Pair<Int, Int>> by lazy {
-        val rollsOfPaper = mutableListOf<Pair<Int, Int>>()
-
-        input.lines().withIndex().forEach { (y, line) -> 
-            line.withIndex().forEach { (x, c) -> 
-                if (c == '@') rollsOfPaper.add(Pair(x, y))
-            }
-        }
-
-        rollsOfPaper
+    val input: String by lazy { 
+        requireNotNull(object {}.javaClass.getResource("/input.txt")?.readText(),
+            { "Could not open input.txt resource." })
     }
-    
-    fun adjacent(x: Int, y: Int) = listOf(
-        Pair(x-1, y-1),
-        Pair(x-1, y),
-        Pair(x-1, y+1),
-        Pair(x, y-1),
-        Pair(x, y+1),
-        Pair(x+1, y-1),
-        Pair(x+1, y),
-        Pair(x+1, y+1),
+
+    val rollsOfPaper: Set<Pair<Int, Int>> by lazy {
+        input.lines().flatMapIndexed { y, line -> 
+            line.withIndex().mapNotNull { (x, c) ->
+                if (c == '@') x to y else null
+            }
+        }.toSet()
+    }
+
+    private val adjacentOffsets = listOf(
+       -1 to -1, -1 to 0, -1 to 1,
+        0 to -1,           0 to 1,
+        1 to -1,  1 to 0,  1 to 1
     )
+    
+    fun adjacent(x: Int, y: Int) = 
+        adjacentOffsets.map { (dx, dy) -> (x + dx) to (y + dy) }
 
     fun part1() : Int {
-        return rollsOfPaper.filter { (x, y) -> 
-            adjacent(x, y).filter { rollsOfPaper.contains(it) }.size < 4
-        }.size
+        return rollsOfPaper.count { (x, y) -> 
+            adjacent(x, y).count { it in rollsOfPaper } < 4
+        }
     }
 
-
     fun part2(): Int {
-        return 0
+        return generateSequence(rollsOfPaper) { current ->
+            current.firstOrNull { (x, y) ->
+                adjacent(x, y).count { it in current } < 4
+            }?.let { current - it }
+        }.count() - 1
     }
 
 }
