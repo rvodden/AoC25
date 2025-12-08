@@ -4,13 +4,17 @@
 package com.vodden.aoc
 
 import kotlin.requireNotNull
+import kotlin.require
 
 
 class Day04 {
-    val input : String
-        get() = object {}.javaClass.getResource("/input.txt")?.readText()!!        
+    val input : String by lazy { 
+            val input = object {}.javaClass.getResource("/input.txt")?.readText()
+            requireNotNull(input) { "Could not open input.txt resource." }
+            input
+        }
 
-    fun part1() : Int {
+    val rollsOfPaper : List<Pair<Int, Int>> by lazy {
         val rollsOfPaper = mutableListOf<Pair<Int, Int>>()
 
         input.lines().withIndex().forEach { (y, line) -> 
@@ -19,17 +23,21 @@ class Day04 {
             }
         }
 
-        fun adjacent(x: Int, y: Int) = listOf(
-            Pair(x-1, y-1),
-            Pair(x-1, y),
-            Pair(x-1, y+1),
-            Pair(x, y-1),
-            Pair(x, y+1),
-            Pair(x+1, y-1),
-            Pair(x+1, y),
-            Pair(x+1, y+1),
-        )
+        rollsOfPaper
+    }
+    
+    fun adjacent(x: Int, y: Int) = listOf(
+        Pair(x-1, y-1),
+        Pair(x-1, y),
+        Pair(x-1, y+1),
+        Pair(x, y-1),
+        Pair(x, y+1),
+        Pair(x+1, y-1),
+        Pair(x+1, y),
+        Pair(x+1, y+1),
+    )
 
+    fun part1() : Int {
         return rollsOfPaper.filter { (x, y) -> 
             adjacent(x, y).filter { rollsOfPaper.contains(it) }.size < 4
         }.size

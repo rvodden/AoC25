@@ -10,6 +10,6 @@ class Day04Test {
     @Test
     fun testPartOne() {
         assertEquals(13, Day04().part1())
-        assertEquals(0, Day04().part2())
+        assertEquals(43, Day04().part2())
     }
 }
