@@ -28,23 +28,38 @@ class Day08 {
                 val dx = a[0] - b[0]
                 val dy = a[1] - b[1]
                 val dz = a[2] - b[2]
-                (dx * dx + dy * dy + dz * dz)
+                - (dx * dx + dy * dy + dz * dz)
             }
 
         val circuits = hashMapOf<List<Long>, Set<List<Long>>>(*junctionBoxes.map { p -> p to setOf(p) }.toTypedArray())
         
         sortedPairs.take(connections).forEach { (a, b) ->
-            val setA = circuits[a]!!
-            val setB = circuits[b]!!
-            if (setA != setB) {
-                val merged = setA + setB
-                merged.forEach { p -> circuits[p] = merged }
+            val (circuit1, jBoxes1) = circuits.entries.first { (_, jBoxes) ->
+                a in jBoxes
             }
+            val (circuit2, jBoxes2) = circuits.entries.first { (_, jBoxes) ->
+                b in jBoxes
+            }
+            if (circuit1 != circuit2) {
+                circuits[a] = jBoxes1 + jBoxes2
+                circuits.remove(b)
+            }
+            println(circuits)
         }
 
-        
+        println(
+            circuits.values
+            .map { it.size }
+            .sortedDescending()
+        )
 
-        return 0
+        val circuitSizes = circuits.values
+            .map { it.size }
+            .sortedDescending()
+            .take(3)
+            .fold(1) { acc, v -> acc * v }
+
+        return circuitSizes
     }
     
     fun part2() : Long {
