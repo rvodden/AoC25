@@ -5,36 +5,56 @@ package com.vodden.aoc
 
 import kotlin.math.abs
 
-typealias Tile = Pair<Long, Long>
+data class Point(val x: Long, val y: Long)
+data class Rectangle(val p1: Point, val p2: Point) {
+    val minX = minOf(p1.x, p2.x)
+    val maxX = maxOf(p1.x, p2.x)
+    val minY = minOf(p1.y, p2.y)
+    val maxY = maxOf(p1.y, p2.y)
+
+    val area: Long by lazy { (abs(p1.x - p2.x) + 1) * (abs(p1.y - p2.y) + 1) }
+
+    fun intersects(other: Rectangle): Boolean {
+        return minX < other.maxX && maxX > other.minX &&
+               minY < other.maxY && maxY > other.minY
+    }
+}
+typealias Line = Rectangle
 
 class Day09 {
-    private val input: List<String> by lazy {
-        requireNotNull(this::class.java.getResource("/input.txt")
-            .readText().lines().filter{ it.isNotBlank() }, {
-            "Failed to read input file"
-        })
+    private val redTiles: List<Point> by lazy {
+        this::class.java.getResource("/input.txt")
+            ?.readText()
+            ?.trim()
+            ?.lines()
+            ?.filter{ it.isNotBlank() }
+            ?.map { line ->
+                val (x, y) = line.split(",").map { it.toLong() }
+                Point(x, y)
+            }
+            ?: error("Input not found!")
     }
 
-    private val redTiles: List<Tile> by lazy {
-        input.map { it.split(",") }
-            .map { it[0].toLong() to it[1].toLong() }
+    private val lines: List<Line> by lazy { 
+        (redTiles + redTiles.first()).windowed(2).map( { Rectangle(it.first(), it.last()) } )
     }
     
-    private val pairs: List<Pair<Tile,Tile>> by lazy {
-        redTiles.withIndex().flatMap { (idx, t1) ->
-            redTiles.drop(idx + 1).map { t2 ->
-                t1 to t2
+    private fun rectangles(): Sequence<Rectangle> = sequence {
+        redTiles.withIndex().forEach { (idx, t1) ->
+            redTiles.drop(idx + 1).forEach { t2 ->
+                yield(Rectangle(t1, t2))
             }
         }
     }
 
-    fun area(lhs: Tile, rhs: Tile): Long =
-        (abs(lhs.first - rhs.first) + 1) *
-        (abs(lhs.second - rhs.second) + 1)
+    fun part1(): Long = rectangles().maxOf {it.area}
 
-    fun part1(): Long = pairs.map({ area(it.first, it.second) }).sorted().last()
-
-    fun part2(): Long = 0L
+    fun part2(): Long {
+        return rectangles()
+            .sortedByDescending { it.area }
+            .first { rectangle -> lines.none { it.intersects(rectangle) } }
+            .area
+    }
 }
 
 fun main() {
