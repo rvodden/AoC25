@@ -31,30 +31,40 @@ class Day10 {
         targets.zip(buttons)
     }
 
-    fun solve(target: List<Int>, buttons: List<Button>): Int {
+    fun solve(target: List<Boolean>, buttons: List<Button>): Int {
         if (target.none()) return 0
-
-        val buttonIndexs = (0..buttons.size).toSet()
 
         // create queue of state, unpressedButton pairs
         val queue = ArrayDeque<Pair<Target, Set<Int>>>()
 
-        queue.add(buttonList to )
+        queue.add( List(size = target.size) { false }  to (0..(target.size-1)).toSet() )
 
-        val newState = state.withIndex().map { (index, value) ->
-            if (button.contains(index)) !value else value
-        }
+        println(queue)
         
-        if (newState == target) return 1
+        while (queue.isNotEmpty()) {
+            val (state, unpressedButtonIndexes) = queue.removeFirst()
 
-        for (buttonToPress in unpressedButtonIndexes) {
+            println("State: $state, Unpressed: $unpressedButtonIndexes")
 
+            unpressedButtonIndexes.forEach { buttonIndex ->
+                val button = buttons[buttonIndex]
+                val newState = state.withIndex().map { (index, value) ->
+                    if (button.contains(index)) !value else value
+                }
+                if (newState == target) return buttons.size - unpressedButtonIndexes.size + 1
+
+                queue.add(newState to (unpressedButtonIndexes - buttonIndex))
+            }
         }
-    
+
+        throw IllegalStateException("No solution found")
     }
 
     fun part1(): Int {
-        println(machines)
+        machines.map { (target, buttons) ->
+            println(listOf(target, buttons))
+            solve(target, buttons)
+        }.forEach { println(it) }
         return 0
     }
 
