@@ -31,6 +31,28 @@ class Day10 {
         targets.zip(buttons)
     }
 
+    fun solve(target: List<Int>, buttons: List<Button>): Int {
+        if (target.none()) return 0
+
+        val buttonIndexs = (0..buttons.size).toSet()
+
+        // create queue of state, unpressedButton pairs
+        val queue = ArrayDeque<Pair<Target, Set<Int>>>()
+
+        queue.add(buttonList to )
+
+        val newState = state.withIndex().map { (index, value) ->
+            if (button.contains(index)) !value else value
+        }
+        
+        if (newState == target) return 1
+
+        for (buttonToPress in unpressedButtonIndexes) {
+
+        }
+    
+    }
+
     fun part1(): Int {
         println(machines)
         return 0
