@@ -37,14 +37,10 @@ class Day10 {
         // create queue of state, unpressedButton pairs
         val queue = ArrayDeque<Pair<Target, Set<Int>>>()
 
-        queue.add( List(size = target.size) { false }  to (0..(target.size-1)).toSet() )
+        queue.add( List(size = target.size) { false }  to (0..<buttons.size).toSet() )
 
-        println(queue)
-        
         while (queue.isNotEmpty()) {
             val (state, unpressedButtonIndexes) = queue.removeFirst()
-
-            println("State: $state, Unpressed: $unpressedButtonIndexes")
 
             unpressedButtonIndexes.forEach { buttonIndex ->
                 val button = buttons[buttonIndex]
@@ -61,11 +57,9 @@ class Day10 {
     }
 
     fun part1(): Int {
-        machines.map { (target, buttons) ->
-            println(listOf(target, buttons))
+        return machines.map { (target, buttons) ->
             solve(target, buttons)
-        }.forEach { println(it) }
-        return 0
+        }.sum()
     }
 
     fun part2(): Int {
