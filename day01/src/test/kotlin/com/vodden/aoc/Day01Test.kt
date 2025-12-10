@@ -11,12 +11,12 @@ class AppTest {
     @Test fun exampleGivesCorrectValue() {
         val lines = object {}.javaClass.getResourceAsStream("/test.txt")?.bufferedReader()?.readLines()
         
-        assertEquals(3, App().process(lines!!))
+        assertEquals(3, Day01().process(lines!!))
     }
 
     @Test fun p2ExampleGivesCorrectValue() {
         val lines = object {}.javaClass.getResourceAsStream("/test.txt")?.bufferedReader()?.readLines()
         
-        assertEquals(6, App().processP2(lines!!))
+        assertEquals(6, Day01().processP2(lines!!))
     }
 }
